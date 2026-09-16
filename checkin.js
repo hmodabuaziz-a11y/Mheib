@@ -17,10 +17,6 @@ const fs = require('fs');
   try {
     console.log("Starting browser in CI mode...");
 
-    // =========================
-    // GET LOGIN CREDENTIALS
-    // =========================
-
     const username = process.env.USERNAME;
     const password = process.env.PASSWORD;
 
@@ -30,10 +26,7 @@ const fs = require('fs');
       );
     }
 
-    // =========================
     // LOGIN
-    // =========================
-
     console.log("Opening login page...");
 
     await page.goto(
@@ -69,10 +62,7 @@ const fs = require('fs');
         );
       });
 
-    // =========================
     // FIND ATTENDANCE BUTTON
-    // =========================
-
     console.log("Waiting for attendance button...");
 
     const attendanceButton =
@@ -94,26 +84,20 @@ const fs = require('fs');
       buttonText
     );
 
-    // =========================
-    // DETECT BUTTON STATE
-    // Arabic + English
-    // =========================
-
+    // DETECT STATE
     const isCheckIn =
       buttonText.includes('check in') ||
       buttonText.includes('تسجيل الحضور');
 
     const isCheckOut =
       buttonText.includes('check out') ||
+      buttonText.includes('تسجيل الخروج') ||
       buttonText.includes('تسجيل الانصراف');
 
-    // =========================
     // CHECK IN
-    // =========================
-
     if (isCheckIn) {
-      console.log("Check-in button detected.");
 
+      console.log("Check-in button detected.");
       console.log("Clicking Check in...");
 
       await attendanceButton.click();
@@ -123,47 +107,37 @@ const fs = require('fs');
       console.log(
         "Check-in completed successfully! ✅"
       );
-    }
 
-    // Already checked in
-    else if (isCheckOut) {
+    } else if (isCheckOut) {
+
       console.log(
         "Already checked in — nothing to do. ✅"
       );
-    }
 
-    // Unknown state
-    else {
+    } else {
+
       throw new Error(
         `Unknown attendance button state: "${buttonText}"`
       );
     }
 
-    // =========================
-    // CLOSE
-    // =========================
+    console.log("Closing browser...");
 
     await browser.close();
+
+    console.log(
+      "Check-in script finished successfully. ✅"
+    );
 
     process.exit(0);
 
   } catch (error) {
 
-    // =========================
-    // ERROR HANDLING
-    // =========================
-
-    console.error(
-      "ERROR:",
-      error.message
-    );
-
-    console.error(
-      "Stack:",
-      error.stack
-    );
+    console.error("ERROR:", error.message);
+    console.error("Stack:", error.stack);
 
     try {
+
       await page.screenshot({
         path: 'screenshot_checkin_error.png',
         fullPage: true
