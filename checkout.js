@@ -17,10 +17,6 @@ const fs = require('fs');
   try {
     console.log("Starting browser in CI mode...");
 
-    // =========================
-    // GET LOGIN CREDENTIALS
-    // =========================
-
     const username = process.env.USERNAME;
     const password = process.env.PASSWORD;
 
@@ -30,10 +26,7 @@ const fs = require('fs');
       );
     }
 
-    // =========================
     // LOGIN
-    // =========================
-
     console.log("Opening login page...");
 
     await page.goto(
@@ -59,10 +52,6 @@ const fs = require('fs');
 
     console.log("Login successful.");
 
-    // =========================
-    // WAIT FOR PAGE
-    // =========================
-
     await page
       .waitForLoadState('networkidle', {
         timeout: 60000
@@ -73,10 +62,7 @@ const fs = require('fs');
         );
       });
 
-    // =========================
     // FIND ATTENDANCE BUTTON
-    // =========================
-
     console.log("Waiting for attendance button...");
 
     const attendanceButton =
@@ -86,10 +72,6 @@ const fs = require('fs');
       state: 'visible',
       timeout: 30000
     });
-
-    // =========================
-    // READ BUTTON TEXT
-    // =========================
 
     const buttonText = (
       await attendanceButton.innerText()
@@ -102,105 +84,57 @@ const fs = require('fs');
       buttonText
     );
 
-    // =========================
-    // DETECT CHECK-IN
-    // =========================
-
+    // DETECT STATE
     const isCheckIn =
       buttonText.includes('check in') ||
       buttonText.includes('تسجيل الحضور');
-
-    // =========================
-    // DETECT CHECK-OUT
-    // =========================
 
     const isCheckOut =
       buttonText.includes('check out') ||
       buttonText.includes('تسجيل الخروج') ||
       buttonText.includes('تسجيل الانصراف');
 
-    // =========================
     // CHECK OUT
-    // =========================
-
     if (isCheckOut) {
 
-      console.log(
-        "Check-out button detected."
-      );
-
-      console.log(
-        "Clicking Check out..."
-      );
+      console.log("Check-out button detected.");
+      console.log("Clicking Check out...");
 
       await attendanceButton.click();
 
-      // Wait for website to process
       await page.waitForTimeout(3000);
 
       console.log(
         "Check-out completed successfully! ✅"
       );
 
-    }
-
-    // =========================
-    // ALREADY CHECKED OUT
-    // =========================
-
-    else if (isCheckIn) {
+    } else if (isCheckIn) {
 
       console.log(
         "Already checked out — nothing to do. ✅"
       );
 
-    }
-
-    // =========================
-    // UNKNOWN BUTTON
-    // =========================
-
-    else {
+    } else {
 
       throw new Error(
         `Unknown attendance button state: "${buttonText}"`
       );
-
     }
-
-    // =========================
-    // FINISH
-    // =========================
 
     console.log("Closing browser...");
 
     await browser.close();
 
     console.log(
-      "Checkout script finished successfully."
+      "Check-out script finished successfully. ✅"
     );
 
     process.exit(0);
 
   } catch (error) {
 
-    // =========================
-    // ERROR
-    // =========================
-
-    console.error(
-      "ERROR:",
-      error.message
-    );
-
-    console.error(
-      "Stack:",
-      error.stack
-    );
-
-    // =========================
-    // SAVE DEBUG FILES
-    // =========================
+    console.error("ERROR:", error.message);
+    console.error("Stack:", error.stack);
 
     try {
 
@@ -209,8 +143,7 @@ const fs = require('fs');
         fullPage: true
       });
 
-      const html =
-        await page.content();
+      const html = await page.content();
 
       fs.writeFileSync(
         'page_checkout_error.html',
@@ -227,12 +160,7 @@ const fs = require('fs');
         "Could not save debug files:",
         debugError.message
       );
-
     }
-
-    // =========================
-    // CLOSE AFTER ERROR
-    // =========================
 
     await browser.close();
 
